@@ -34,11 +34,24 @@ weights/dinov3-l16
 ```
 The DINOv3 backbone version is `facebook/dinov3-vitl16-pretrain-lvd1689m`.
 
+The DINOv3 backbone weights can be downloaded from ModelScope:
+
+```text
+https://www.modelscope.cn/models/facebook/dinov3-vitl16-pretrain-lvd1689m
+```
+
 For inference, put the checkpoint in the package-local location:
 
 ```text
 weights/model_best.ckpt
 ```
+
+The `model_best.ckpt` checkpoint can be downloaded from:
+
+```text
+https://drive.google.com/file/d/12xMXHFRo6fcOEh0vfw2yhyM5RD53nbYY/view?usp=sharing
+```
+
 If the DINOv3 path saved in the checkpoint differs on the target machine, use `--backbone-path` during submission inference.
 
 
