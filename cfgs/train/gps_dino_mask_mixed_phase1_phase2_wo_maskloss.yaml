@@ -1,0 +1,160 @@
+arch: "GPSDINOMaskModel"
+name: "gps_dino_mask_mixed_phase1_phase2"
+
+model:
+  feature_dim: 1024
+  nproj: 2
+  proj_dim: 1024
+  agglomerative_num_clusters: 32
+  mask_hidden_dim: 256
+  dropout: 0.1
+  backbone0: "/home/data/liyaqid/modelcode/AID-main-end/weights/dinov3-l16"
+  backbone1: 1024
+  patch_size: 16
+  layer_indices: [5, 11, 17, 23]
+  cluster_tau: 0.9
+  reducer_hidden_dim: 256
+  reducer_temperature: 0.07
+  topk_ratio: 0.05
+  mask_target_threshold: 0.1
+  classification_loss: focal
+  loss_weights:
+    main: 1.0
+    global_branch: 1.0
+    patch_branch: 1.0
+    segment_branch: 1.0
+    cluster_mask: 1.0
+    decoder_mask: 1.0
+    bbox_mask: 0.0
+    bbox_boundary: 0.0
+    bbox_outside: 0.0
+    edge: 0.0
+    edge_width: 3
+
+  hf_local_files_only: true
+  lora:
+    enabled: true
+    rank: 32
+    alpha: 16
+    dropout: 0.05
+    train_bias: false
+    verbose: true
+    print_trainable_params: true
+    target_blocks: all
+    target_modules:
+      - attention.q_proj
+      - attention.v_proj
+
+train:
+  pipeline: engine.ddl_trainer
+  seed: 42
+  gpu_ids: [0]
+  accelerator: gpu
+  train_epochs: 10
+  warmup_epochs: 1
+  check_val_every_n_epoch: 1
+  precision: "16-mixed"
+  monitor: val_acc_epoch
+  monitor_mode: max
+  bbox_eval:
+    fake_threshold: 0.5
+    mask_threshold: 0.5
+    min_box_area: 16
+    mask_thresholds: [0.30, 0.40, 0.50, 0.60]
+    min_box_areas: [8, 16, 32, 64]
+  log_every_n_steps: 10
+  accumulation_steps: 1
+  gradient_clip_val: 1.0
+  gradient_clip_algorithm: norm
+  scheduler_interval: step
+  head_lr_ratio: 10.0
+  token_head_lr_ratio: 0.1
+  zero_wd_for_norm: true
+  eta_min: 1e-9
+  optimizer:
+    _target_: torch.optim.AdamW
+    _partial_: true
+    lr: 1e-4
+    weight_decay: 5e-2
+    betas: [0.95, 0.999]
+  scheduler:
+    _target_: utils.lr_schedulers.WarmupCosineScheduler
+    _partial_: true
+  wandb:
+    enabled: false
+    project: DDL
+    entity: null
+    mode: online
+    log_model: false
+    num_val_images: 4
+    log_val_images_every_n_epochs: 1
+    tags: []
+    group: null
+    notes: null
+  local_val_visuals:
+    enabled: true
+    dir: null
+    num_val_images: 8
+    every_n_epochs: 1
+
+datasets:
+  train:
+    target: data.DDLMixedDataset
+    phase1_train_root: /home/data/liyaqid/DATASET_DDL/phase1/track1_inner/track1/train
+    phase1_valid_root: /home/data/liyaqid/DATASET_DDL/phase1/track1_inner/track1/valid
+    phase2_test_root: /home/data/liyaqid/DATASET_DDL/phase2/track1/test
+    image_size: 512
+    gps_style_augment: true
+    min_size: 384
+    max_size: 768
+    patch_size: 16
+    phase2_val_ratio: 0.1
+    canvas_augment: true
+    canvas_augment_prob: 0.25
+    canvas_augment_modes: ["shrink", "repeat", "mosaic"]
+    canvas_augment_scale_range: [0.45, 0.9]
+    canvas_augment_repeat_count_range: [2, 4]
+    canvas_augment_mosaic_grid_choices:
+      - [2, 2]
+      - [2, 2]
+      - [2, 2]
+      - [3, 3]
+    canvas_augment_mosaic_output_sizes:
+      - [512, 512]
+      - [976, 549]
+      - [1024, 576]
+      - [1024, 1024]
+    phase2_split_seed: 42
+    batch_size: 2
+    loader_workers: 1
+    pin_memory: false
+    persistent_workers: false
+  val:
+    target: data.DDLMixedDataset
+    phase2_test_root: /home/data/liyaqid/DATASET_DDL/phase2/track1/test
+    image_size: 512
+    gps_style_augment: false
+    canvas_augment: true
+    canvas_augment_eval: true
+    canvas_augment_eval_seed: 2026
+    canvas_augment_prob: 0.25
+    canvas_augment_modes: ["shrink", "repeat", "mosaic"]
+    canvas_augment_scale_range: [0.45, 0.9]
+    canvas_augment_repeat_count_range: [2, 4]
+    canvas_augment_mosaic_grid_choices:
+      - [2, 2]
+      - [2, 2]
+      - [2, 2]
+      - [3, 3]
+    canvas_augment_mosaic_output_sizes:
+      - [512, 512]
+      - [976, 549]
+      - [1024, 576]
+      - [1024, 1024]
+
+    phase2_val_ratio: 0.1
+    phase2_split_seed: 42
+    batch_size: 2
+    loader_workers: 1
+    pin_memory: false
+    persistent_workers: false
