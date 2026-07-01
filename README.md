@@ -1,6 +1,6 @@
 # PATE-Forensics Training and Inference Reproduction
 
-`PATE-Forensics` is the submission package for DDL training and inference. It contains source code, the main training configuration, inference scripts, dependency files, and reserved locations for the final model checkpoint, DINOv3 backbone, and datasets.
+`PATE-Forensics` is the implementation code for training and inference in the [DDL competition](https://ai-safety-workshop-ijcai2026.github.io/Track3.html). It contains source code, the main training configuration, inference scripts, dependency files, and reserved locations for the final model checkpoint, DINOv3 backbone, and datasets.
 
 ## Contents
 
